@@ -1,0 +1,109 @@
+body {
+    font-family: 'Sarabun', sans-serif;
+    background-color: #fff !important; /* Ensure white background */
+    color: #000;
+    /* Force browser to print background colors and images */
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+}
+
+h1, h2, h3 {
+    color: #000;
+    text-align: center;
+}
+
+/* --- Page Control --- */
+.print-month-group {
+    page-break-after: always;
+}
+.print-month-group:last-child {
+    page-break-after: auto;
+}
+
+/* For mixed view printing */
+@media print {
+    .page-landscape {
+        page: landscape;
+    }
+    .page-portrait {
+        page: portrait;
+    }
+    .page-portrait, .page-landscape {
+        page-break-before: always;
+    }
+    .print-month-group > .page-landscape:first-child,
+    .print-month-group > .page-portrait:first-child {
+        page-break-before: auto;
+    }
+}
+
+
+/* --- Calendar Print Styles --- */
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0; /* No gap for printing */
+    border: 1px solid #000;
+}
+.calendar-day {
+    border: 1px solid #ccc;
+    min-height: 120px;
+    padding: 4px;
+    font-size: 9pt;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+.calendar-day.empty {
+    background-color: #f0f0f0 !important;
+}
+.calendar-day.day-header {
+    font-weight: bold;
+    text-align: center;
+    min-height: auto;
+    padding: 5px;
+    border: 1px solid #000;
+    background-color: #eee !important;
+}
+.day-number {
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+.event-item {
+    font-size: 8pt;
+    padding: 2px 3px;
+    border-radius: 2px;
+    margin-bottom: 2px;
+    border: 1px solid #ddd;
+    background-color: #f9f9f9 !important;
+    line-height: 1.2;
+    overflow-wrap: break-word;
+}
+.holiday-item {
+    font-weight: bold;
+    background-color: #eee !important;
+}
+
+
+/* --- Table Print Styles --- */
+.event-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10pt;
+}
+.event-table th, .event-table td {
+    border: 1px solid #000;
+    padding: 6px;
+    text-align: left;
+}
+.event-table th {
+    background-color: #eee !important;
+    font-weight: bold;
+    text-align: center;
+}
+
+/* --- Hide elements not for printing --- */
+button, input, .modal-overlay, .controls-toolbar {
+    display: none;
+}
+

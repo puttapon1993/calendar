@@ -1,0 +1,52 @@
+Root:
+|   config.php
+|   export_ical.php
+|   index.php
+|   print.php
+|   
++---admin
+|   |   auth.php
+|   |   backup.php
+|   |   dashboard.php
+|   |   delete_event.php
+|   |   delete_holiday.php
+|   |   delete_report.php
+|   |   events.php
+|   |   event_form.php
+|   |   export_csv.php
+|   |   holidays.php
+|   |   holiday_form.php
+|   |   import_process.php
+|   |   login.php
+|   |   logout.php
+|   |   reports.php
+|   |   save_event.php
+|   |   save_holiday.php
+|   |   save_settings.php
+|   |   session_check.php
+|   |   settings.php
+|   |   toggle_event_status.php
+|   |   
+|   +---assets
+|   |       admin_style.css
+|   |       backup_script.js
+|   |       
+|   \---partials
+|           footer.php
+|           header.php
+|           
++---api
+|       get_events.php
+|       get_navigation.php
+|       get_ticker_data.php
+|       search.php
+|       submit_report.php
+|       
+\---assets
+    +---css
+    |       print_style.css
+    |       style.css
+    |       
+    \---js
+            script.js
+            
