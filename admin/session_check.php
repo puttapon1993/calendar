@@ -1,11 +1,20 @@
 <?php
-// Initialize the session
-session_start();
+// File: session_check.php
+// Location: /admin/
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
-// Check if the user is logged in, if not then redirect them to the login page
-if (!isset($_SESSION["admin_loggedin"]) || $_SESSION["admin_loggedin"] !== true) {
-    // Append a message to the URL for clarity (optional)
-    header("location: login.php?reason=unauthorized");
+// Redirect to login page if user is not logged in
+if (!isset($_SESSION['user_loggedin']) || $_SESSION['user_loggedin'] !== true) {
+    header("location: login.php");
     exit;
 }
-?>
+
+// Helper function to check if the current user is an admin
+if (!function_exists('is_admin')) {
+    function is_admin() {
+        return isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin';
+    }
+}
+

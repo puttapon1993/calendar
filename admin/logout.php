@@ -1,5 +1,6 @@
 <?php
-// Initialize the session
+// File: logout.php
+// Location: /admin/
 session_start();
 
 // Unset all of the session variables

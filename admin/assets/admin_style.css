@@ -1,3 +1,6 @@
+/* File: admin_style.css */
+/* Location: /admin/assets/ */
+
 /* --- General and Layout --- */
 :root {
     --primary-color: #3498db;
@@ -20,6 +23,10 @@ body {
     color: #333;
 }
 
+button, input, select, textarea {
+    font-family: 'Sarabun', sans-serif;
+}
+
 .admin-wrapper {
     display: flex;
 }
@@ -28,19 +35,20 @@ body {
     width: 250px;
     background-color: var(--secondary-color);
     color: #fff;
-    height: 100vh; /* Use height instead of min-height */
+    height: 100vh;
     padding: 1.5rem;
     position: fixed;
-    display: flex; /* Make it a flex container */
-    flex-direction: column; /* Arrange items vertically */
-    transition: all 0.3s ease; /* Smooth transition */
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s ease;
     box-sizing: border-box;
+    z-index: 1000;
 }
 .sidebar h2 {
     text-align: center;
     margin-top: 0;
     margin-bottom: 1rem;
-    flex-shrink: 0; /* Prevent from shrinking */
+    flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -49,14 +57,14 @@ body {
 }
 
 .admin-nav {
-    flex-grow: 1; /* Allow this to grow and push the footer down */
-    overflow-y: auto; /* Add scroll if content is too long */
+    flex-grow: 1;
+    overflow-y: auto;
 }
 
 .admin-nav a {
-    display: flex; /* Use flex for alignment */
-    align-items: center; /* Center items vertically */
-    gap: 15px; /* Space between icon/text */
+    display: flex;
+    align-items: center;
+    gap: 15px;
     color: #fff;
     text-decoration: none;
     padding: 0.8rem 1rem;
@@ -66,7 +74,7 @@ body {
     white-space: nowrap;
 }
 .admin-nav a i {
-    width: 20px; /* Fixed width for icon alignment */
+    width: 20px;
     text-align: center;
     font-size: 1.1rem;
 }
@@ -76,16 +84,23 @@ body {
 .admin-nav a.active {
     background-color: var(--primary-color);
 }
+.admin-nav a.disabled {
+    color: #8a96a3;
+    pointer-events: none;
+    cursor: default;
+    background-color: transparent;
+}
+
 
 .user-info {
-    flex-shrink: 0; /* Prevent from shrinking */
+    flex-shrink: 0;
     padding-top: 1rem;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 .user-info p {
     margin: 0 0 0.5rem 0;
     font-size: 0.9rem;
-    white-space: nowrap; /* Prevent text wrapping */
+    white-space: nowrap;
     overflow: hidden;
     display: flex;
     align-items: center;
@@ -107,20 +122,20 @@ body {
     color: #fff;
 }
 
-.main-content {
+.admin-wrapper .main-content {
     margin-left: 250px;
     width: calc(100% - 250px);
     padding: 2rem;
-    transition: all 0.3s ease; /* Smooth transition */
+    transition: all 0.3s ease;
 }
-.main-header {
+.admin-wrapper .main-header {
     background-color: #fff;
     padding: 1rem 2rem;
     border-radius: 8px;
     margin-bottom: 2rem;
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
-.main-header h1 {
+.admin-wrapper .main-header h1 {
     margin: 0;
 }
 .content-area {
@@ -160,7 +175,7 @@ body.sidebar-collapsed .admin-nav a,
 body.sidebar-collapsed .logout-btn {
     justify-content: center;
 }
-body.sidebar-collapsed .main-content {
+body.sidebar-collapsed .admin-wrapper .main-content {
     margin-left: 80px;
     width: calc(100% - 80px);
 }
@@ -207,22 +222,23 @@ body.sidebar-collapsed .user-info {
     cursor: pointer;
     font-size: 0.9rem;
     transition: opacity 0.2s ease;
-    display: inline-block; /* Fix for alignment */
+    display: inline-block;
 }
 .button:hover {
     opacity: 0.9;
 }
 .button-secondary {
-    background-color: #95a5a6; /* Grey */
+    background-color: #95a5a6;
+    color: #fff;
 }
 .button-danger {
     background-color: var(--danger-color);
 }
 .button-edit {
-     background-color: #f39c12; /* Orange */
+     background-color: #f39c12;
 }
 
-/* --- Toolbar for Events Page --- */
+/* --- Toolbar for Lists --- */
 .toolbar-grid {
     display: flex;
     justify-content: space-between;
@@ -256,7 +272,7 @@ body.sidebar-collapsed .user-info {
     background-color: var(--primary-color);
     color: #fff;
 }
-#searchInput, #holidaySearchInput {
+#searchInput, #holidaySearchInput, #staffSearchInput {
     padding: 0.6rem;
     border: 1px solid var(--border-color);
     border-radius: 4px;
@@ -297,10 +313,10 @@ body.sidebar-collapsed .user-info {
     text-decoration: none;
     white-space: nowrap;
 }
-.status-visible {
+.status-visible, .status-active {
     background-color: var(--success-color);
 }
-.status-hidden {
+.status-hidden, .status-inactive {
     background-color: #7f8c8d;
 }
 .month-header td {
@@ -309,6 +325,38 @@ body.sidebar-collapsed .user-info {
     font-weight: 700;
     font-size: 1.1rem;
     padding: 0.8rem 1rem;
+}
+.creator-tooltip {
+    position: relative;
+    cursor: pointer;
+}
+.creator-tooltip .tooltip-text {
+    visibility: hidden;
+    width: max-content;
+    max-width: 250px;
+    background-color: #555;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 10px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -60px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 0.85rem;
+    white-space: normal;
+}
+.creator-tooltip:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+}
+.creator-admin { color: #2980b9; }
+.creator-staff { color: #16a085; }
+.creator-coowned {
+    text-shadow: 0 0 5px #f1c40f;
 }
 
 /* --- Forms --- */
@@ -321,6 +369,7 @@ body.sidebar-collapsed .user-info {
     font-weight: 500;
 }
 .data-form input[type="text"],
+.data-form input[type="password"],
 .data-form input[type="number"],
 .data-form input[type="date"],
 .data-form input[type="file"],
@@ -343,8 +392,6 @@ body.sidebar-collapsed .user-info {
     align-items: center;
     margin-bottom: 0.5rem;
 }
-
-/* --- Date Input with Helper --- */
 .date-input-container-with-helper {
     display: flex;
     gap: 2rem;
@@ -356,113 +403,55 @@ body.sidebar-collapsed .user-info {
 }
 .date-helper {
     flex-basis: 220px;
+    flex-shrink: 0;
     background-color: #f9f9f9;
     border: 1px solid #eee;
     border-radius: 4px;
     padding: 1rem;
     font-size: 0.85rem;
 }
-.date-helper strong {
-    display: block;
-    margin-bottom: 0.5rem;
-}
-.date-helper p {
-    margin: 0 0 0.5rem 0;
-}
-.date-helper ul {
-    margin: 0;
-    padding-left: 1.2rem;
-    columns: 2;
-}
-.date-input-be.is-invalid {
-    border-color: var(--danger-color);
-    box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.2);
-}
-.date-input-be.is-valid {
-    border-color: var(--success-color);
-    box-shadow: 0 0 0 2px rgba(39, 174, 96, 0.2);
-}
+.date-helper strong { display: block; margin-bottom: 0.5rem; }
+.date-helper p { margin: 0 0 0.5rem 0; }
+.date-input-wrapper { display: flex; align-items: center; gap: 10px; }
+.date-input-wrapper .date-input-be { flex-grow: 1; }
+.date-input-wrapper .date-display { font-size: 0.9em; color: #555; white-space: nowrap; }
+.date-input-be.is-invalid { border-color: var(--danger-color); box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.2); }
+.date-input-be.is-valid { border-color: var(--success-color); box-shadow: 0 0 0 2px rgba(39, 174, 96, 0.2); }
 
 /* --- Alert Messages --- */
-.alert {
-    padding: 1rem;
-    margin-bottom: 1.5rem;
-    border-radius: 4px;
-    color: #fff;
-    background-color: #95a5a6;
-}
-.alert.alert-info {
-    background-color: var(--primary-color);
-}
-.alert-success {
-    background-color: var(--success-color);
-}
-.alert-danger {
-    background-color: var(--danger-color);
-}
-.alert ul {
-    margin: 0.5rem 0 0 1rem;
-    padding: 0;
-}
-.alert li {
-    font-size: 0.9rem;
-}
+.alert { padding: 1rem; margin-bottom: 1.5rem; border-radius: 4px; color: #fff; background-color: #95a5a6; }
+.alert.alert-info { background-color: var(--primary-color); }
+.alert-success { background-color: var(--success-color); }
+.alert-danger { background-color: var(--danger-color); }
+.alert ul { margin: 0.5rem 0 0 1rem; padding: 0; }
+.alert li { font-size: 0.9rem; }
 
+/* --- Settings & Staff Form --- */
+.data-form fieldset { border: 1px solid #ddd; border-radius: 4px; padding: 1.5rem; margin-bottom: 2rem; }
+.data-form legend { font-weight: 500; font-size: 1.1rem; padding: 0 0.5rem; }
+.radio-group label { margin-right: 1rem; }
+.date-range-selector { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+.date-range-selector select { padding: 0.5rem; margin-left: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px; }
+.date-range-selector .year-input { width: 90px; padding: 0.5rem; }
+.color-picker-grid, .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; }
+.color-picker-grid input[type="color"] { width: 100%; height: 40px; padding: 0; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; }
 
-/* --- Settings Form --- */
-.data-form fieldset {
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    padding: 1.5rem;
-    margin-bottom: 2rem;
-}
-.data-form legend {
-    font-weight: 500;
-    font-size: 1.1rem;
-    padding: 0 0.5rem;
-}
-.radio-group label {
-    margin-right: 1rem;
-}
-.date-range-selector {
-    display: flex;
-    gap: 1rem;
-    align-items: center;
-    flex-wrap: wrap;
-}
-.date-range-selector select {
-    padding: 0.5rem;
-    margin-left: 0.5rem;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-}
-.date-range-selector .year-input {
-    width: 90px;
-    padding: 0.5rem;
-}
-.color-picker-grid, .settings-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1.5rem;
-}
-.color-picker-grid input[type="color"] {
-    width: 100%;
-    height: 40px;
-    padding: 0;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    cursor: pointer;
-}
+/* --- Modals --- */
+.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 1050; }
+.modal-content { background-color: #fff; padding: 2rem; border-radius: 8px; width: 90%; max-width: 500px; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+.modal-close-btn { position: absolute; top: 10px; right: 15px; background: none; border: none; font-size: 1.8rem; cursor: pointer; color: #aaa; }
+.co-owner-list { max-height: 300px; overflow-y: auto; border: 1px solid #eee; padding: 1rem; border-radius: 4px; margin-bottom: 1.5rem; }
+.co-owner-list label { display: block; margin-bottom: 0.5rem; }
 
 /* --- Backup Page Styles --- */
 .backup-container {
     display: grid;
-    grid-template-columns: 1fr; /* Default to single column */
+    grid-template-columns: 1fr;
     gap: 2rem;
 }
 @media (min-width: 992px) {
     .backup-container {
-        grid-template-columns: 1fr 1fr; /* Two columns on larger screens */
+        grid-template-columns: 1fr 1fr;
     }
 }
 .backup-card {
@@ -486,6 +475,7 @@ body.sidebar-collapsed .user-info {
     display: flex;
     gap: 0.5rem;
 }
+/* MODIFIED: Changed event-checklist to be a single column */
 .event-checklist {
     max-height: 300px;
     overflow-y: auto;
@@ -503,7 +493,7 @@ body.sidebar-collapsed .user-info {
 
 /* --- Import Preview Styles --- */
 .import-preview-card {
-    grid-column: 1 / -1; /* Make preview card span full width */
+    grid-column: 1 / -1;
     border-color: var(--primary-color);
     background-color: #f5faff;
 }
@@ -524,8 +514,6 @@ body.sidebar-collapsed .user-info {
     color: #777;
     text-decoration: line-through;
 }
-
-
 .import-preview-name {
     font-weight: 500;
 }
@@ -539,6 +527,4 @@ body.sidebar-collapsed .user-info {
     color: var(--danger-color);
     font-weight: bold;
 }
-
-
 

@@ -1,6 +1,16 @@
 <?php
+// File: settings.php
+// Location: /admin/
 $page_title = 'ตั้งค่าเว็บไซต์';
 require_once 'partials/header.php';
+
+// Security Check: Only admins can access this page
+if (!is_admin()) {
+    $_SESSION['error_message'] = "คุณไม่มีสิทธิ์เข้าถึงหน้านี้";
+    header('Location: dashboard.php');
+    exit;
+}
+
 require_once '../config.php';
 
 // Fetch all settings from the database
@@ -236,7 +246,7 @@ if (isset($_SESSION['error_message'])) {
                 <input type="color" id="no_event_date_bg_color" name="settings[no_event_date_bg_color]" value="<?php echo get_setting('no_event_date_bg_color', '#fafafa'); ?>">
             </div>
             <div class="form-group">
-                <label for="holiday_bg_color">สีพื้นหลังวันหยุดพิเศษ</label>
+                <label for="holiday_bg_color">สีพื้นหลังวันสำคัญ</label>
                 <input type="color" id="holiday_bg_color" name="settings[holiday_bg_color]" value="<?php echo get_setting('holiday_bg_color', '#f2dede'); ?>">
             </div>
         </div>

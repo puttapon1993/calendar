@@ -1,18 +1,27 @@
+<?php
+// File: login.php
+// Location: /admin/
+session_start();
+// If user is already logged in, redirect to dashboard
+if (isset($_SESSION["user_loggedin"]) && $_SESSION["user_loggedin"] === true) {
+    header("location: dashboard.php");
+    exit;
+}
+?>
 <!DOCTYPE html>
 <html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>เข้าสู่ระบบ - ส่วนจัดการ</title>
-
-    <!-- Google Fonts: Sarabun -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;700&display=swap" rel="stylesheet">
-
     <style>
-        body {
+        body, button, input {
             font-family: 'Sarabun', sans-serif;
+        }
+        body {
             background-color: #F4F7FC;
             display: flex;
             justify-content: center;
@@ -46,7 +55,7 @@
             padding: 0.75rem;
             border: 1px solid #ccc;
             border-radius: 4px;
-            box-sizing: border-box; /* Important for padding */
+            box-sizing: border-box;
         }
         .login-button {
             width: 100%;
@@ -62,7 +71,6 @@
         .login-button:hover {
             background-color: #004494;
         }
-        /* Add a placeholder for error messages */
         .error-message {
             color: #D8000C;
             background-color: #FFD2D2;
@@ -70,7 +78,6 @@
             border-radius: 4px;
             text-align: center;
             margin-bottom: 1.5rem;
-            display: none; /* Hidden by default */
         }
     </style>
 </head>
@@ -78,12 +85,13 @@
     <div class="login-container">
         <h1>ส่วนจัดการปฏิทิน</h1>
 
-        <!-- Error Message Placeholder -->
-        <div class="error-message" id="errorMessage">
-            <!-- Login errors will be shown here -->
-        </div>
+        <?php 
+        if(isset($_SESSION['login_error'])){
+            echo '<div class="error-message">' . $_SESSION['login_error'] . '</div>';
+            unset($_SESSION['login_error']);
+        }
+        ?>
 
-        <!-- The form will post data to an authentication script we will create later -->
         <form action="auth.php" method="POST">
             <div class="form-group">
                 <label for="username">ชื่อผู้ใช้</label>

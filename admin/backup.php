@@ -1,33 +1,40 @@
 <?php
+// File: backup.php
+// Location: /admin/
 $page_title = 'สำรองข้อมูลกิจกรรม';
 require_once 'partials/header.php';
 require_once '../config.php';
 
-$events_for_export = [];
-try {
-    $stmt = $pdo->query("SELECT id, event_name FROM events ORDER BY event_name ASC");
-    $events_for_export = $stmt->fetchAll(PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
-    echo "<p class='error'>Could not fetch events from the database: " . $e->getMessage() . "</p>";
+// Security Check: Only admins can access this page
+if (!is_admin()) {
+    $_SESSION['error_message'] = "คุณไม่มีสิทธิ์เข้าถึงหน้านี้";
+    header("Location: dashboard.php");
+    exit;
 }
 
-// --- NEW, ROBUST LOGIC FOR CSV PREVIEW ---
+$events_for_export = [];
+try {
+    // Modified query to sort correctly for Thai language
+    $stmt = $pdo->query("SELECT id, event_name FROM events ORDER BY event_name COLLATE utf8mb4_thai_520_w2 ASC");
+    $events_for_export = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    echo "<p class='alert alert-danger'>Could not fetch events from the database: " . $e->getMessage() . "</p>";
+}
+
 $new_events_to_import = [];
 $skipped_events = [];
-// **CRITICAL FIX**: Do NOT unset preview data here. Only clear old final results.
 $import_summary = $_SESSION['import_summary'] ?? null;
 $import_error = $_SESSION['import_error'] ?? null;
 unset($_SESSION['import_summary'], $_SESSION['import_error']);
 
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['csv_file_preview']) && $_FILES['csv_file_preview']['error'] == 0) {
-    // Clear any previous preview data before processing a new file
     unset($_SESSION['import_preview_data']);
     
     $filename = $_FILES['csv_file_preview']['tmp_name'];
     if (($handle = fopen($filename, 'r')) !== FALSE) {
-        fgetcsv($handle, 2000, ","); // Skip header, increased buffer size
-        while (($data = fgetcsv($handle, 2000, ",")) !== FALSE) {
+        fgetcsv($handle); 
+        while (($data = fgetcsv($handle)) !== FALSE) {
             $event_name = trim($data[0] ?? '');
             if(empty($event_name)) continue;
 
@@ -35,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['csv_file_preview']) 
                 'event_name' => $event_name,
                 'responsible_unit' => trim($data[1] ?? ''),
                 'notes' => trim($data[2] ?? ''),
-                'dates' => trim($data[3] ?? '') // This contains the date string e.g., "2025-12-25,2025-12-26"
+                'dates' => trim($data[3] ?? '')
             ];
 
             $stmt_check = $pdo->prepare("SELECT id FROM events WHERE event_name = ?");
@@ -48,7 +55,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['csv_file_preview']) 
         }
         fclose($handle);
         
-        // Store the valid, new events in the session for the next step
         if (!empty($new_events_to_import)) {
             $_SESSION['import_preview_data'] = $new_events_to_import;
         }
@@ -87,24 +93,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['csv_file_preview']) 
         <p><b>ขั้นตอนที่ 1:</b> เลือกไฟล์ CSV (UTF-8) เพื่อแสดงตัวอย่างข้อมูลก่อนนำเข้า</p>
         <?php 
         if ($import_summary) {
-            echo "<div class='alert alert-success'>";
-            echo "<strong>สรุปผลการ Import ล่าสุด:</strong><br>";
-            echo "<ul>";
-            foreach($import_summary['logs'] as $log) {
-                echo "<li>" . htmlspecialchars($log) . "</li>";
-            }
+            echo "<div class='alert alert-success'><strong>สรุปผลการ Import ล่าสุด:</strong><br><ul>";
+            foreach($import_summary['logs'] as $log) { echo "<li>" . htmlspecialchars($log) . "</li>"; }
             echo "</ul>";
             if(!empty($import_summary['errors'])) {
                 echo "<strong>ข้อผิดพลาด:</strong><br><ul>";
-                 foreach($import_summary['errors'] as $error) {
-                    echo "<li class='log-error'>" . htmlspecialchars($error) . "</li>";
-                }
+                 foreach($import_summary['errors'] as $error) { echo "<li class='log-error'>" . htmlspecialchars($error) . "</li>"; }
                 echo "</ul>";
             }
             echo "</div>";
         }
         if ($import_error) {
-            echo '<div class="alert alert-danger">' . $import_error . '</div>';
+            echo '<div class="alert alert-danger">' . htmlspecialchars($import_error) . '</div>';
         }
         ?>
         <form action="backup.php" method="POST" enctype="multipart/form-data">

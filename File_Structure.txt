@@ -1,8 +1,13 @@
-Root:
+Folder PATH listing for volume Windows
+Volume serial number is 78B8-747F
+C:.
 |   config.php
+|   db_calendar.sql
 |   export_ical.php
+|   File_Structure.txt
 |   index.php
 |   print.php
+|   report_st.bat
 |   
 +---admin
 |   |   auth.php
@@ -11,21 +16,29 @@ Root:
 |   |   delete_event.php
 |   |   delete_holiday.php
 |   |   delete_report.php
+|   |   delete_staff.php
+|   |   draft_calendar.php
 |   |   events.php
 |   |   event_form.php
 |   |   export_csv.php
 |   |   holidays.php
 |   |   holiday_form.php
 |   |   import_process.php
+|   |   index.php
 |   |   login.php
 |   |   logout.php
+|   |   manage_staff.php
 |   |   reports.php
 |   |   save_event.php
 |   |   save_holiday.php
 |   |   save_settings.php
+|   |   save_staff.php
 |   |   session_check.php
 |   |   settings.php
+|   |   staff_form.php
 |   |   toggle_event_status.php
+|   |   toggle_holiday_status.php
+|   |   toggle_staff_status.php
 |   |   
 |   +---assets
 |   |       admin_style.css
@@ -36,6 +49,9 @@ Root:
 |           header.php
 |           
 +---api
+|       check_date_conflict.php
+|       draft_search.php
+|       get_draft_navigation.php
 |       get_events.php
 |       get_navigation.php
 |       get_ticker_data.php

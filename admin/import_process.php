@@ -1,14 +1,26 @@
 <?php
+// File: import_process.php
+// Location: /admin/
 session_start();
-if (!isset($_SESSION['admin_loggedin'])) {
+if (!isset($_SESSION['user_loggedin'])) {
     exit('Access Denied');
 }
 require_once '../config.php';
+require_once 'partials/header.php'; // For is_admin()
 
 $summary = [
     'logs' => [],
     'errors' => []
 ];
+
+// Admin-only feature
+if (!is_admin()) {
+    $_SESSION['import_error'] = "คุณไม่มีสิทธิ์นำเข้าข้อมูล";
+    header('Location: backup.php');
+    exit;
+}
+
+$current_admin_id = $_SESSION['user_id'];
 
 // Retrieve the preview data stored securely in the session
 $import_preview_data = $_SESSION['import_preview_data'] ?? [];
@@ -18,8 +30,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['selected_indices']) &
     $pdo->beginTransaction();
     try {
         // Prepare statements outside the loop for efficiency
-        $stmt_insert_event = $pdo->prepare("INSERT INTO events (event_name, responsible_unit, notes) VALUES (?, ?, ?)");
+        $stmt_insert_event = $pdo->prepare("INSERT INTO events (event_name, responsible_unit, notes, created_by_user_id) VALUES (?, ?, ?, ?)");
         $stmt_insert_date = $pdo->prepare("INSERT INTO event_dates (event_id, activity_date) VALUES (?, ?)");
+        $stmt_insert_owner = $pdo->prepare("INSERT INTO event_owners (event_id, user_id) VALUES (?, ?)");
+
 
         // Loop through the INDEXES of the selected events
         foreach ($_POST['selected_indices'] as $index) {
@@ -30,11 +44,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['selected_indices']) &
             }
             $event_data = $import_preview_data[$index];
 
-            // Step 1: Insert into `events` table
+            // Step 1: Insert into `events` table with creator ID
             $stmt_insert_event->execute([
                 $event_data['event_name'],
                 $event_data['responsible_unit'],
-                $event_data['notes']
+                $event_data['notes'],
+                $current_admin_id
             ]);
             
             // Step 2: Get the ID of the new event
@@ -44,7 +59,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['selected_indices']) &
             }
             $summary['logs'][] = "เพิ่มกิจกรรม: '" . htmlspecialchars($event_data['event_name']) . "' (ID: {$event_id})";
 
-            // Step 3: Insert into `event_dates` table using the new ID
+            // Step 3: Insert the admin as the owner
+            $stmt_insert_owner->execute([$event_id, $current_admin_id]);
+
+            // Step 4: Insert into `event_dates` table using the new ID
             if (!empty($event_data['dates'])) {
                 $dates = explode(',', $event_data['dates']);
                 $date_added_count = 0;

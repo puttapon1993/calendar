@@ -1,6 +1,16 @@
 <?php
+// File: reports.php
+// Location: /admin/
 $page_title = 'ข้อความแจ้งปัญหา';
 require_once 'partials/header.php';
+
+// Security Check: Only admins can access this page
+if (!is_admin()) {
+    $_SESSION['error_message'] = "คุณไม่มีสิทธิ์เข้าถึงหน้านี้";
+    header('Location: dashboard.php');
+    exit;
+}
+
 require_once '../config.php';
 
 try {

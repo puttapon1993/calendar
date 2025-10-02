@@ -1,9 +1,16 @@
 <?php
-session_start();
-if (!isset($_SESSION['admin_loggedin'])) {
-    exit('Access Denied');
-}
+// File: export_csv.php
+// Location: /admin/
+require_once 'session_check.php'; // Handles session start and authentication check
+
 require_once '../config.php';
+
+// Security Check: Only admins can export data.
+if (!is_admin()) {
+    $_SESSION['error_message'] = "คุณไม่มีสิทธิ์ดำเนินการนี้";
+    header("Location: dashboard.php");
+    exit;
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['event_ids']) && is_array($_POST['event_ids'])) {
     $event_ids = $_POST['event_ids'];
@@ -58,3 +65,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['event_ids']) && is_ar
     header('Location: backup.php');
     exit;
 }
+?>

@@ -1,4 +1,6 @@
 <?php
+// File: events.php
+// Location: /admin/
 $page_title = 'จัดการกิจกรรม';
 require_once 'partials/header.php';
 require_once '../config.php';
@@ -12,15 +14,12 @@ function format_event_dates($dates_str) {
     if (empty($dates_str)) return 'N/A';
     
     $dates = explode(',', $dates_str);
-    sort($dates); // Ensure dates are sorted chronologically
+    sort($dates);
     
     $date_objects = array_map(fn($d) => new DateTime($d), $dates);
     
     $thai_day_short = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
-    $thai_month_short = [
-        1 => 'ม.ค.', 2 => 'ก.พ.', 3 => 'มี.ค.', 4 => 'เม.ย.', 5 => 'พ.ค.', 6 => 'มิ.ย.',
-        7 => 'ก.ค.', 8 => 'ส.ค.', 9 => 'ก.ย.', 10 => 'ต.ค.', 11 => 'พ.ย.', 12 => 'ธ.ค.'
-    ];
+    $thai_month_short = [1=>'ม.ค.', 2=>'ก.พ.', 3=>'มี.ค.', 4=>'เม.ย.', 5=>'พ.ค.', 6=>'มิ.ย.', 7=>'ก.ค.', 8=>'ส.ค.', 9=>'ก.ย.', 10=>'ต.ค.', 11=>'พ.ย.', 12=>'ธ.ค.'];
 
     if (count($date_objects) == 1) {
         $date = $date_objects[0];
@@ -54,44 +53,54 @@ function format_event_dates($dates_str) {
 }
 
 try {
-    // Fetch all events with their corresponding dates, ordered by the earliest date of each event
-    $stmt = $pdo->prepare("
+    $sql = "
         SELECT 
             e.*, 
+            creator.role as creator_role,
+            IFNULL(creator.real_name, 'ผู้ใช้ที่ถูกลบ') as creator_name,
+            (SELECT GROUP_CONCAT(u.real_name SEPARATOR ', ')
+             FROM event_owners eo
+             JOIN users u ON eo.user_id = u.id
+             WHERE eo.event_id = e.id AND eo.user_id != e.created_by_user_id
+            ) as co_owner_names,
+            (SELECT COUNT(*) FROM event_owners WHERE event_id = e.id) as owner_count,
             GROUP_CONCAT(ed.activity_date ORDER BY ed.activity_date) as all_dates,
             MIN(ed.activity_date) as first_date
         FROM events e
         LEFT JOIN event_dates ed ON e.id = ed.event_id
+        LEFT JOIN users creator ON e.created_by_user_id = creator.id
+        WHERE " . (is_admin() ? "1" : "e.id IN (SELECT event_id FROM event_owners WHERE user_id = ?)") . "
         GROUP BY e.id
         HAVING first_date IS NOT NULL
         ORDER BY first_date {$sort_order}
-    ");
-    $stmt->execute();
+    ";
+
+    $params = [];
+    if (!is_admin()) {
+        $params[] = $_SESSION['user_id'];
+    }
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
     $events = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Group events by month-year
     $grouped_events = [];
-    $thai_month_full = [
-        1 => 'มกราคม', 2 => 'กุมภาพันธ์', 3 => 'มีนาคม', 4 => 'เมษายน', 5 => 'พฤษภาคม', 6 => 'มิถุนายน',
-        7 => 'กรกฎาคม', 8 => 'สิงหาคม', 9 => 'กันยายน', 10 => 'ตุลาคม', 11 => 'พฤศจิกายน', 12 => 'ธันวาคม'
-    ];
+    $thai_month_full = [1=>'มกราคม', 2=>'กุมภาพันธ์', 3=>'มีนาคม', 4=>'เมษายน', 5=>'พฤษภาคม', 6=>'มิถุนายน', 7=>'กรกฎาคม', 8=>'สิงหาคม', 9=>'กันยายน', 10=>'ตุลาคม', 11=>'พฤศจิกายน', 12=>'ธันวาคม'];
     foreach ($events as $event) {
         $date = new DateTime($event['first_date']);
         $month_key = $date->format('Y-m');
         $month_label = $thai_month_full[(int)$date->format('n')] . ' ' . ($date->format('Y') + 543);
         
         if (!isset($grouped_events[$month_key])) {
-            $grouped_events[$month_key] = [
-                'label' => $month_label,
-                'events' => []
-            ];
+            $grouped_events[$month_key] = ['label' => $month_label, 'events' => []];
         }
         $grouped_events[$month_key]['events'][] = $event;
     }
 
 } catch (PDOException $e) {
     $grouped_events = [];
-    echo "<p class='error'>Could not fetch events from the database: " . $e->getMessage() . "</p>";
+    echo "<p class='alert alert-danger'>Could not fetch events from the database: " . $e->getMessage() . "</p>";
 }
 ?>
 
@@ -109,7 +118,6 @@ try {
 </div>
 
 <?php 
-// Display success or error messages
 if (isset($_SESSION['success_message'])) {
     echo '<div class="alert alert-success">' . $_SESSION['success_message'] . '</div>';
     unset($_SESSION['success_message']);
@@ -128,18 +136,19 @@ if (isset($_SESSION['error_message'])) {
                 <th>หน่วยงานที่รับผิดชอบ</th>
                 <th>วันที่จัดกิจกรรม</th>
                 <th>สถานะ</th>
+                <th>ผู้สร้าง/เจ้าของ</th>
                 <th>เครื่องมือ</th>
             </tr>
         </thead>
         <tbody>
             <?php if (empty($grouped_events)): ?>
                 <tr>
-                    <td colspan="5" style="text-align:center;">ยังไม่มีข้อมูลกิจกรรม...</td>
+                    <td colspan="6" style="text-align:center;">ยังไม่มีข้อมูลกิจกรรม...</td>
                 </tr>
             <?php else: ?>
                 <?php foreach ($grouped_events as $group): ?>
                     <tr class="month-header">
-                        <td colspan="5"><?php echo $group['label']; ?></td>
+                        <td colspan="6"><?php echo $group['label']; ?></td>
                     </tr>
                     <?php foreach ($group['events'] as $event): ?>
                         <tr class="event-row">
@@ -150,6 +159,41 @@ if (isset($_SESSION['error_message'])) {
                                 <a href="toggle_event_status.php?id=<?php echo $event['id']; ?>" class="status-badge <?php echo $event['is_hidden'] ? 'status-hidden' : 'status-visible'; ?>">
                                     <?php echo $event['is_hidden'] ? 'ซ่อน' : 'แสดง'; ?>
                                 </a>
+                            </td>
+                            <?php
+                                // --- Creator Icon Logic ---
+                                $creator_name = htmlspecialchars($event['creator_name']);
+                                $creator_role = $event['creator_role'];
+                                $owner_count = (int)$event['owner_count'];
+                                $co_owner_names = htmlspecialchars($event['co_owner_names'] ?? '');
+
+                                $icon_class = 'fas fa-user'; // Default for staff
+                                $color_class = 'creator-staff';
+                                $tooltip_html = "สร้างโดย: " . $creator_name;
+
+                                if ($creator_role === 'admin') {
+                                    $icon_class = 'fas fa-user-gear';
+                                    $color_class = 'creator-admin';
+                                }
+
+                                if ($owner_count > 1) {
+                                    $icon_class = 'fas fa-user-group'; // Icon for co-owned
+                                    if(!empty($co_owner_names)) {
+                                       $tooltip_html .= "<br>เจ้าของร่วม: " . $co_owner_names;
+                                    }
+                                }
+
+                                if ($event['created_by_user_id'] !== null && $event['creator_name'] === 'ผู้ใช้ที่ถูกลบ') {
+                                     $icon_class = 'fas fa-user-slash';
+                                     $color_class = '';
+                                     $tooltip_html = "สร้างโดย: ผู้ใช้ที่ถูกลบไปแล้ว";
+                                }
+                            ?>
+                            <td data-label="ผู้สร้าง/เจ้าของ" style="text-align: center;">
+                                <span class="creator-tooltip <?php echo $color_class; ?>">
+                                    <i class="<?php echo $icon_class; ?>"></i>
+                                    <span class="tooltip-text"><?php echo $tooltip_html; ?></span>
+                                </span>
                             </td>
                             <td data-label="เครื่องมือ">
                                 <div class="action-buttons">
