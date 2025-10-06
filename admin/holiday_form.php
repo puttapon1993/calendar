@@ -14,6 +14,7 @@ $owner_ids = [];
 $all_staff = [];
 $user_permissions = ['start' => null, 'end' => null];
 
+// --- Prepare dynamic date example for helper text ---
 $thai_month_full_static = [1=>'มกราคม', 2=>'กุมภาพันธ์', 3=>'มีนาคม', 4=>'เมษายน', 5=>'พฤษภาคม', 6=>'มิถุนายน', 7=>'กรกฎาคม', 8=>'สิงหาคม', 9=>'กันยายน', 10=>'ตุลาคม', 11=>'พฤศจิกายน', 12=>'ธันวาคม'];
 $today = new DateTime();
 $today_thai_full = "วันที่ " . (int)$today->format('j') . " " . $thai_month_full_static[(int)$today->format('n')] . " พ.ศ. " . ($today->format('Y') + 543);
@@ -67,6 +68,7 @@ if ($is_edit_mode) {
         $stmt_owners = $pdo->prepare("SELECT user_id FROM holiday_owners WHERE holiday_id = ?");
         $stmt_owners->execute([$holiday_id]);
         $owner_ids = $stmt_owners->fetchAll(PDO::FETCH_COLUMN);
+
     } catch (PDOException $e) {
         $_SESSION['error_message'] = "เกิดข้อผิดพลาด: " . $e->getMessage();
         header('Location: holidays.php');
@@ -81,7 +83,8 @@ if (!$is_edit_mode) {
 
 <form action="save_holiday.php" method="POST" class="data-form" id="holiday-form">
     <input type="hidden" name="id" value="<?php echo htmlspecialchars($holiday['id']); ?>">
-    <input type="hidden" name="owner_ids_str" id="owner_ids_input" value="<?php echo implode(',', $owner_ids); ?>">
+    <input type="hidden" name="confirm_conflict" id="confirm-conflict-input" value="0">
+     <input type="hidden" name="owner_ids_str" id="owner_ids_input" value="<?php echo implode(',', $owner_ids); ?>">
 
     <div class="form-group">
         <label for="holiday_name">ชื่อวันสำคัญ</label>
@@ -91,9 +94,9 @@ if (!$is_edit_mode) {
     <div class="date-input-container-with-helper">
         <div id="date-inputs-container">
             <div class="form-group">
-                <label for="holiday_date_text">วันที่</label>
+                <label>วันที่</label>
                 <div class="date-input-wrapper">
-                    <input type="text" id="holiday_date_text" class="date-input-be" placeholder="ววดดปปปป" value="<?php echo convert_to_be_text(htmlspecialchars($holiday['holiday_date'])); ?>">
+                    <input type="text" class="date-input-be" placeholder="ววดดปปปป" value="<?php echo convert_to_be_text(htmlspecialchars($holiday['holiday_date'])); ?>">
                     <input type="hidden" name="holiday_date" value="<?php echo htmlspecialchars($holiday['holiday_date']); ?>">
                     <span class="date-display"></span>
                 </div>
@@ -106,24 +109,19 @@ if (!$is_edit_mode) {
         </div>
     </div>
 
-     <fieldset>
-        <legend>สถานะ</legend>
-        <div class="form-group">
-            <div class="radio-group">
-                <label><input type="radio" name="is_hidden" value="0" <?php echo ($holiday['is_hidden'] == 0) ? 'checked' : ''; ?>> แสดง</label>
-                <label><input type="radio" name="is_hidden" value="1" <?php echo ($holiday['is_hidden'] == 1) ? 'checked' : ''; ?>> ซ่อน</label>
-            </div>
+    <div class="form-group">
+        <label>สถานะ</label>
+        <div class="radio-group">
+            <label><input type="radio" name="is_hidden" value="0" <?php echo ($holiday['is_hidden'] == 0) ? 'checked' : ''; ?>> แสดง</label>
+            <label><input type="radio" name="is_hidden" value="1" <?php echo ($holiday['is_hidden'] == 1) ? 'checked' : ''; ?>> ซ่อน</label>
         </div>
-    </fieldset>
+    </div>
 
     <?php if (is_admin() && !empty($all_staff)): ?>
     <fieldset><legend>เจ้าของร่วม (Co-owners)</legend><p>คุณสามารถกำหนดให้ Staff คนอื่นมีสิทธิ์แก้ไขวันสำคัญนี้ร่วมกันได้</p><button type="button" id="open-co-owner-modal-btn" class="button button-secondary"><i class="fas fa-users"></i> กำหนดเจ้าของร่วม</button></fieldset>
     <?php endif; ?>
 
-    <div class="form-actions">
-        <button type="submit" class="button">บันทึกข้อมูล</button>
-        <a href="holidays.php" class="button button-secondary">ยกเลิก</a>
-    </div>
+    <div class="form-actions"><button type="submit" class="button">บันทึกข้อมูล</button><a href="holidays.php" class="button button-secondary">ยกเลิก</a></div>
 </form>
 
 <?php if (is_admin() && !empty($all_staff)): ?>
@@ -142,28 +140,53 @@ if (!$is_edit_mode) {
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const holidayForm = document.getElementById('holiday-form');
+    const confirmationModal = document.getElementById('confirmation-modal');
+    const confirmSaveBtn = document.getElementById('confirm-save-btn');
+    const cancelSaveBtn = document.getElementById('cancel-save-btn');
+    const confirmConflictInput = document.getElementById('confirm-conflict-input');
+    const modalBody = document.getElementById('confirmation-modal-body');
+    let hasConflict = false;
+    let conflictDetails = [];
+
     const isUserAdmin = <?php echo json_encode(is_admin()); ?>;
     const userPermissions = <?php echo json_encode($user_permissions); ?>;
     const thaiDayShort = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
     const thaiMonthFull = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
 
+    function formatFullThaiDate(dateStr) {
+        if (!dateStr) return 'ไม่ระบุ';
+        try {
+            const parts = dateStr.split('-');
+            const date = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
+            const day = date.getUTCDate();
+            const month = thaiMonthFull[date.getUTCMonth()];
+            const year = date.getUTCFullYear() + 543;
+            return `${day} ${month} ${year}`;
+        } catch (e) {
+            return dateStr;
+        }
+    }
+    
     function convertAndValidateBE(textInput) {
         const wrapper = textInput.closest('.date-input-wrapper');
         const hiddenInput = wrapper.querySelector('input[type="hidden"]');
         const displaySpan = wrapper.querySelector('.date-display');
-        let value = textInput.value.replace(/\D/g, '');
         
+        let value = textInput.value.replace(/\D/g, '');
         textInput.classList.remove('is-invalid', 'is-valid');
-        if (value.length < 8) { hiddenInput.value = ''; displaySpan.textContent = ''; return; }
+
+        if (value.length < 8) { hiddenInput.value = ''; displaySpan.textContent = ''; checkForConflicts(); return; }
         if (value.length > 8) { value = value.substring(0, 8); textInput.value = value; }
 
         const day = parseInt(value.substring(0, 2), 10), month = parseInt(value.substring(2, 4), 10), yearBE = parseInt(value.substring(4, 8), 10);
-        if (isNaN(day) || isNaN(month) || isNaN(yearBE) || month < 1 || month > 12 || day < 1 || day > 31 || yearBE < 2500) { hiddenInput.value = ''; textInput.classList.add('is-invalid'); displaySpan.textContent = ''; return; }
-        
+        if (isNaN(day) || isNaN(month) || isNaN(yearBE) || month < 1 || month > 12 || day < 1 || day > 31 || yearBE < 2500) { 
+            hiddenInput.value = ''; textInput.classList.add('is-invalid'); displaySpan.textContent = ''; checkForConflicts(); return; 
+        }
+
         const yearCE = yearBE - 543, formattedDate = `${yearCE}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        const testDate = new Date(formattedDate + 'T00:00:00');
-        
-        if (testDate.getFullYear() === yearCE && (testDate.getMonth() + 1) === month && testDate.getDate() === day) {
+        const testDate = new Date(yearCE, month - 1, day);
+
+        if (testDate.getFullYear() === yearCE && testDate.getMonth() === (month - 1) && testDate.getDate() === day) {
             hiddenInput.value = formattedDate;
             textInput.classList.add('is-valid');
             const dayName = thaiDayShort[testDate.getDay()], dayNum = testDate.getDate(), monthName = thaiMonthFull[testDate.getMonth()], yearNumBE = testDate.getFullYear() + 543;
@@ -171,23 +194,69 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             hiddenInput.value = ''; textInput.classList.add('is-invalid'); displaySpan.textContent = '';
         }
+        checkForConflicts();
     }
 
-    const dateInput = document.getElementById('holiday_date_text');
+    const dateInput = document.querySelector('.date-input-be');
     if (dateInput) {
         dateInput.addEventListener('input', function() { convertAndValidateBE(this); });
         if (dateInput.value) { convertAndValidateBE(dateInput); }
     }
 
+    let conflictCheckTimeout;
+    async function checkForConflicts() {
+        clearTimeout(conflictCheckTimeout);
+        conflictCheckTimeout = setTimeout(async () => {
+            const date = document.querySelector('input[name="holiday_date"]').value;
+            if (!date) { hasConflict = false; return; }
+            
+            const formData = new FormData();
+            formData.append('dates[]', date);
+            if ("<?php echo $holiday_id; ?>" > 0) { formData.append('exclude_holiday_id', "<?php echo $holiday_id; ?>"); }
+
+            try {
+                const response = await fetch('../api/check_date_conflict.php', { method: 'POST', body: formData });
+                const result = await response.json();
+                hasConflict = result.conflict; conflictDetails = result.details || [];
+            } catch (error) { console.error("Conflict check failed:", error); hasConflict = false; }
+        }, 500);
+    }
+
     holidayForm.addEventListener('submit', function(e) {
         if (!isUserAdmin && (userPermissions.start || userPermissions.end)) {
             const date = document.querySelector('input[name="holiday_date"]').value;
-            if (date && ((userPermissions.start && date < userPermissions.start) || (userPermissions.end && date > userPermissions.end))) {
-                e.preventDefault();
-                showAlert(`ไม่สามารถบันทึกได้ เนื่องจากวันที่ที่ระบุ (${date}) อยู่นอกช่วงเวลาที่คุณได้รับอนุญาต`);
+            if (date) {
+                if ((userPermissions.start && date < userPermissions.start) || (userPermissions.end && date > userPermissions.end)) {
+                    e.preventDefault();
+
+                    const formattedDate = formatFullThaiDate(date);
+                    const formattedStartDate = formatFullThaiDate(userPermissions.start);
+                    const formattedEndDate = formatFullThaiDate(userPermissions.end);
+
+                    let message = `ไม่สามารถบันทึกได้ เนื่องจากวันที่ที่ระบุ (${formattedDate}) อยู่นอกช่วงเวลาที่คุณได้รับอนุญาต`;
+                    
+                    if(userPermissions.start && userPermissions.end) {
+                        message += ` ซึ่งคุณได้รับอนุญาตให้เพิ่มข้อมูลได้ช่วง วันที่ ${formattedStartDate} ถึง วันที่ ${formattedEndDate} เท่านั้น`;
+                    } else if (userPermissions.start) {
+                        message += ` ซึ่งคุณได้รับอนุญาตให้เพิ่มข้อมูลได้ตั้งแต่วันที่ ${formattedStartDate} เป็นต้นไปเท่านั้น`;
+                    } else if (userPermissions.end) {
+                        message += ` ซึ่งคุณได้รับอนุญาตให้เพิ่มข้อมูลได้ถึงวันที่ ${formattedEndDate} เท่านั้น`;
+                    }
+
+                    showAlert(message);
+                    return;
+                }
             }
         }
+        if (hasConflict && confirmConflictInput.value !== '1') {
+            e.preventDefault();
+            modalBody.innerHTML = '<p><strong>คำเตือน:</strong></p><ul>' + conflictDetails.map(d => `<li>${d}</li>`).join('') + '</ul><p>คุณยังคงยืนยันที่จะเพิ่มวันสำคัญของคุณในวันนี้ใช่ไหม?</p>';
+            confirmationModal.classList.remove('hidden');
+        }
     });
+
+    confirmSaveBtn.addEventListener('click', () => { confirmConflictInput.value = '1'; confirmationModal.classList.add('hidden'); holidayForm.submit(); });
+    cancelSaveBtn.addEventListener('click', () => { confirmationModal.classList.add('hidden'); confirmConflictInput.value = '0'; });
 
     const coOwnerModal = document.getElementById('co-owner-modal');
     if (coOwnerModal) {

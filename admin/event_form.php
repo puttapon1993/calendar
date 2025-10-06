@@ -200,6 +200,20 @@ document.addEventListener('DOMContentLoaded', function() {
     const thaiDayShort = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
     const thaiMonthFull = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
 
+    function formatFullThaiDate(dateStr) {
+        if (!dateStr) return 'ไม่ระบุ';
+        try {
+            const parts = dateStr.split('-');
+            const date = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
+            const day = date.getUTCDate();
+            const month = thaiMonthFull[date.getUTCMonth()];
+            const year = date.getUTCFullYear() + 543;
+            return `${day} ${month} ${year}`;
+        } catch (e) {
+            return dateStr;
+        }
+    }
+
     function convertAndValidateBE(textInput) {
         const wrapper = textInput.closest('.date-input-wrapper');
         const hiddenInput = wrapper.querySelector('input[type="hidden"]');
@@ -238,11 +252,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const container = document.getElementById('date-inputs-container');
     container.querySelectorAll('.date-input-be').forEach(initializeDateInput);
 
-    /**
-     * Gathers all valid YYYY-MM-DD date strings from the form based on the selected date type.
-     * This function now correctly handles date ranges to avoid timezone issues.
-     * @returns {string[]} An array of date strings.
-     */
     function getDatesFromForm() {
         let dates = [];
         const dateType = document.querySelector('input[name="date_type"]:checked').value;
@@ -258,7 +267,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 let currentDate = new Date(startStr);
                 let endDate = new Date(endStr);
                 
-                // Use UTC methods to iterate through dates and avoid timezone shifts
                 while (currentDate <= endDate) {
                     const year = currentDate.getUTCFullYear();
                     const month = String(currentDate.getUTCMonth() + 1).padStart(2, '0');
@@ -300,7 +308,22 @@ document.addEventListener('DOMContentLoaded', function() {
             for (const date of datesToCheck) {
                 if ((userPermissions.start && date < userPermissions.start) || (userPermissions.end && date > userPermissions.end)) {
                     e.preventDefault();
-                    showAlert(`ไม่สามารถบันทึกได้ เนื่องจากวันที่ที่ระบุ (${date}) อยู่นอกช่วงเวลาที่คุณได้รับอนุญาต`);
+                    
+                    const formattedDate = formatFullThaiDate(date);
+                    const formattedStartDate = formatFullThaiDate(userPermissions.start);
+                    const formattedEndDate = formatFullThaiDate(userPermissions.end);
+
+                    let message = `ไม่สามารถบันทึกได้ เนื่องจากวันที่ที่ระบุ (${formattedDate}) อยู่นอกช่วงเวลาที่คุณได้รับอนุญาต`;
+                    
+                    if(userPermissions.start && userPermissions.end) {
+                        message += ` ซึ่งคุณได้รับอนุญาตให้เพิ่มข้อมูลได้ช่วง วันที่ ${formattedStartDate} ถึง วันที่ ${formattedEndDate} เท่านั้น`;
+                    } else if (userPermissions.start) {
+                        message += ` ซึ่งคุณได้รับอนุญาตให้เพิ่มข้อมูลได้ตั้งแต่วันที่ ${formattedStartDate} เป็นต้นไปเท่านั้น`;
+                    } else if (userPermissions.end) {
+                        message += ` ซึ่งคุณได้รับอนุญาตให้เพิ่มข้อมูลได้ถึงวันที่ ${formattedEndDate} เท่านั้น`;
+                    }
+                    
+                    showAlert(message);
                     return;
                 }
             }

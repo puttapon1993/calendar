@@ -1,4 +1,6 @@
 <?php
+// File: index.php
+// Location: /
 require_once 'config.php';
 
 try {
@@ -61,14 +63,14 @@ $current_date_thai = $thai_day_full[$today->format('w')] . 'ที่ ' . (int)$
              background-color: <?php echo htmlspecialchars(get_setting('no_event_date_bg_color', '#fafafa')); ?>;
         }
         .calendar-day.is-today { 
-            box-shadow: inset 0 0 0 2px <?php echo htmlspecialchars(get_setting('primary_color', '#3498db')); ?>; 
+            box-shadow: inset 0 0 0 2px #3498db; 
         }
     </style>
 </head>
 <body>
     <div class="site-container">
         <header class="site-header">
-            <h1><?php echo htmlspecialchars(get_setting('site_title', 'ปฏิทินกิจกรรมโรงเรียน')); ?></h1>
+            <h1><?php echo nl2br(htmlspecialchars(get_setting('site_title', 'ปฏิทินกิจกรรมโรงเรียน'))); ?></h1>
             <?php if (get_setting('show_current_date', '1') === '1'): ?>
             <p><?php echo $current_date_thai; ?></p>
             <?php endif; ?>
@@ -89,7 +91,7 @@ $current_date_thai = $thai_day_full[$today->format('w')] . 'ที่ ' . (int)$
                     <button id="table-view-btn">📄 มุมมองตาราง</button>
                 </div>
                  <div class="search-container">
-                    <input type="search" id="search-box" placeholder="ค้นหากิจกรรม...">
+                    <input type="search" id="search-box" placeholder="ค้นหากิจกรรมและวันสำคัญ...">
                 </div>
                 <div class="actions-group">
                     <button id="print-btn">🖨️ พิมพ์</button>
@@ -131,10 +133,12 @@ $current_date_thai = $thai_day_full[$today->format('w')] . 'ที่ ' . (int)$
 
         <footer class="site-footer">
             <p><?php echo nl2br(htmlspecialchars(get_setting('footer_text', '© โรงเรียนรักวิทยาคม'))); ?></p>
+            <div class="footer-login-link">
+                <a href="admin/">เข้าสู่ระบบ</a>
+            </div>
         </footer>
     </div>
     
-    <!-- Event Details Modal (REVISED) -->
     <div id="event-details-modal" class="modal-overlay hidden">
         <div class="modal-content">
             <button class="modal-close-btn">&times;</button>
@@ -144,8 +148,6 @@ $current_date_thai = $thai_day_full[$today->format('w')] . 'ที่ ' . (int)$
         </div>
     </div>
 
-
-    <!-- Report Problem Modal -->
     <div id="report-modal" class="modal-overlay hidden">
         <div class="modal-content">
             <button class="modal-close-btn">&times;</button>
@@ -156,7 +158,6 @@ $current_date_thai = $thai_day_full[$today->format('w')] . 'ที่ ' . (int)$
         </div>
     </div>
     
-    <!-- Print Options Modal -->
     <div id="print-modal" class="modal-overlay hidden">
          <div class="modal-content">
             <button class="modal-close-btn">&times;</button>
@@ -170,10 +171,8 @@ $current_date_thai = $thai_day_full[$today->format('w')] . 'ที่ ' . (int)$
     </div>
 
     <script>
-        // Pass PHP settings to JavaScript
         const siteSettings = <?php echo json_encode($settings_raw); ?>;
     </script>
     <script src="assets/js/script.js?v=<?php echo filemtime('assets/js/script.js'); ?>"></script>
 </body>
 </html>
-

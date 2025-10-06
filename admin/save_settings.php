@@ -20,8 +20,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (isset($_POST['settings']) && is_array($_POST['settings'])) {
             $stmt = $pdo->prepare("INSERT INTO settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
             foreach ($_POST['settings'] as $key => $value) {
-                // Trim whitespace from value before saving
-                $stmt->execute([$key, trim($value)]);
+                // Trim whitespace from value, EXCEPT for the ticker separator
+                $final_value = ($key === 'ticker_separator') ? $value : trim($value);
+                $stmt->execute([$key, $final_value]);
             }
         }
         
@@ -56,3 +57,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 header('Location: settings.php');
 exit;
 ?>
+

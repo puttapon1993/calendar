@@ -1,5 +1,6 @@
 /* File: style.css */
 /* Location: /assets/css/ */
+
 /* --- General and Layout --- */
 :root {
     --primary-color: #3498db;
@@ -16,11 +17,9 @@ body {
     line-height: 1.6;
 }
 
-/* Ensure form elements inherit the body font */
 button, input, select, textarea {
     font-family: 'Sarabun', sans-serif;
 }
-
 
 .site-container {
     max-width: 1200px;
@@ -43,22 +42,8 @@ button, input, select, textarea {
     opacity: 0.9;
 }
 
-/* --- Draft Warning Banner --- */
-.draft-warning-banner {
-    background-color: #c0392b;
-    color: #fff;
-    padding: 1rem;
-    text-align: center;
-    font-weight: 500;
-    border-radius: 8px;
-    margin-bottom: 1.5rem;
-    line-height: 1.7;
-}
-
-
 /* --- Ticker --- */
 #event-ticker-container {
-    background-color: #fff;
     border-radius: 4px;
     margin-bottom: 1.5rem;
     padding: 0.5rem 0;
@@ -70,12 +55,12 @@ button, input, select, textarea {
     display: inline-block;
     padding-left: 100%;
     animation: marquee linear infinite;
+    white-space: pre; /* This line preserves all whitespace */
 }
 @keyframes marquee {
     0%   { transform: translate(0, 0); }
     100% { transform: translate(-100%, 0); }
 }
-
 
 .main-content {
     background-color: #fff;
@@ -90,6 +75,18 @@ button, input, select, textarea {
     padding: 1rem;
     font-size: 0.9rem;
     color: var(--dark-grey);
+}
+
+.footer-login-link {
+    margin-top: 1rem;
+    font-size: 0.8rem;
+}
+.footer-login-link a {
+    color: var(--dark-grey);
+    text-decoration: none;
+}
+.footer-login-link a:hover {
+    text-decoration: underline;
 }
 
 .hidden { display: none !important; }
@@ -137,7 +134,7 @@ button, input, select, textarea {
     display: flex;
     gap: 0.5rem;
 }
-.view-switcher button, .actions-group button, .actions-group a.button {
+.view-switcher button, .actions-group button {
     background: #f9f9f9;
     border: 1px solid var(--border-color);
     padding: 0.5rem 1rem;
@@ -219,8 +216,8 @@ button, input, select, textarea {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    cursor: pointer; /* Make all event items clickable */
-    transition: background-color 0.2s;
+    cursor: pointer;
+    transition: background-color: 0.2s;
 }
 .event-item:hover {
     background-color: rgba(52, 152, 219, 0.2);
@@ -264,8 +261,8 @@ button, input, select, textarea {
     text-align: center;
 }
 #event-table th:nth-child(1), #event-table td:nth-child(1) { width: 25%; }
-#event-table th:nth-child(3), #event-table td:nth-child(3) { width: 15%; }
-#event-table th:nth-child(4), #event-table td:nth-child(4) { width: 8%; text-align: center; }
+#event-table th:nth-child(3), #event-table td:nth-child(3) { width: 20%; }
+#event-table th:nth-child(4), #event-table td:nth-child(4) { width: 5%; text-align: center; } /* Adjusted width */
 .ical-export-btn {
     color: var(--primary-color);
     text-decoration: none;
@@ -302,6 +299,10 @@ button, input, select, textarea {
 .search-results-list p.notes {
     font-style: italic;
     color: #555;
+}
+.search-results-list .fa-star {
+    color: #f39c12;
+    margin-right: 5px;
 }
 
 /* --- All Events View --- */
@@ -487,3 +488,4 @@ button, input, select, textarea {
         padding: 2px 4px;
     }
 }
+

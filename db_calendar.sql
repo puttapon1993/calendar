@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: sql301.infinityfree.com
--- Generation Time: Oct 02, 2025 at 12:48 PM
+-- Generation Time: Oct 06, 2025 at 09:18 AM
 -- Server version: 11.4.7-MariaDB
 -- PHP Version: 7.2.22
 
@@ -98,7 +98,8 @@ INSERT INTO `events` (`id`, `event_name`, `responsible_unit`, `notes`, `is_hidde
 (62, 'ค่ายพัฒนาทักษะการเรียนรู้โดยใช้ปัญหาเป็นฐาน EPLUS+ ม.2', '', '', 0, '2025-09-27 15:35:58', '2025-10-02 12:21:05', 1),
 (63, 'สอบปลายภาค 1/2568 ในตาราง', 'วิชาการ', '', 0, '2025-09-27 15:36:20', '2025-10-02 12:21:05', 1),
 (64, 'ประชุมสถาบันสวนกุหลาบและมอบประกาศเกียรติคุณ', 'สำนักเลขาธิการสถาบันฯ', '', 0, '2025-09-27 15:36:45', '2025-10-02 12:21:05', 1),
-(65, 'สอบปลายภาค 1/2568 นอกตาราง', 'วิชาการ', '', 0, '2025-09-27 15:37:01', '2025-10-02 12:21:05', 1);
+(65, 'สอบปลายภาค 1/2568 นอกตาราง', 'วิชาการ', '', 0, '2025-09-27 15:37:01', '2025-10-02 12:21:05', 1),
+(109, 'ฝึกปฏิบัติการทางวิทยาศาสตร์ EP ม.4-5', '', '', 0, '2025-10-06 04:32:01', '2025-10-06 04:32:01', 1);
 
 -- --------------------------------------------------------
 
@@ -237,7 +238,8 @@ INSERT INTO `event_dates` (`id`, `event_id`, `activity_date`) VALUES
 (162, 57, '2025-09-29'),
 (197, 11, '2025-10-01'),
 (198, 11, '2025-10-02'),
-(232, 56, '2026-03-31');
+(232, 56, '2026-03-31'),
+(253, 109, '2025-11-06');
 
 -- --------------------------------------------------------
 
@@ -309,7 +311,8 @@ INSERT INTO `event_owners` (`event_id`, `user_id`) VALUES
 (62, 1),
 (63, 1),
 (64, 1),
-(65, 1);
+(65, 1),
+(109, 1);
 
 -- --------------------------------------------------------
 
@@ -377,7 +380,7 @@ CREATE TABLE `settings` (
 INSERT INTO `settings` (`setting_key`, `setting_value`) VALUES
 ('event_date_bg_color', '#e6f7ff'),
 ('footer_text', '© พัฒนาเว็บไซต์โดย ครูพุทธพล  ภาคสุวรรณ์\r\nรวบรวมข้อมูลโดยกลุ่มบริหารงานพัฒนาคุณภาพการศึกษา'),
-('header_bg_color', '#1a89c1'),
+('header_bg_color', '#cf20b8'),
 ('header_text_color', '#ffffff'),
 ('highlight_today', '1'),
 ('holiday_bg_color', '#fffbe6'),
@@ -393,15 +396,19 @@ INSERT INTO `settings` (`setting_key`, `setting_value`) VALUES
 ('site_publication_status', 'published'),
 ('site_title', 'ปฏิทินกิจกรรมโรงเรียนสวนกุหลาบวิทยาลัย'),
 ('sunday_bg_color', '#fbbcbc'),
-('table_day_name_format', 'full'),
-('table_day_name_style', 'colon'),
+('table_day_name_format', 'short_dot'),
+('table_day_name_style', 'none'),
 ('table_month_format', 'short'),
 ('table_year_format', 'be_2'),
+('ticker_bg_color', '#12a4de'),
 ('ticker_custom_message', ''),
+('ticker_notes_prefix', ':'),
+('ticker_separator', '   ||   '),
+('ticker_show_holidays', '1'),
 ('ticker_speed', '20'),
-('ticker_text_color', '#0033ff'),
+('ticker_text_color', '#ffffff'),
 ('truncate_event_names', '0'),
-('week_start_day', 'sunday');
+('week_start_day', 'monday');
 
 -- --------------------------------------------------------
 
@@ -467,7 +474,39 @@ CREATE TABLE `users` (
 
 INSERT INTO `users` (`id`, `username`, `password`, `real_name`, `role`, `is_active`, `permission_end_date`, `permission_start_date`) VALUES
 (1, 'admin', '1234', 'ผู้ดูแลระบบหลัก', 'admin', 1, NULL, NULL),
-(2, 'staff1', 'abc111', 'test', 'staff', 1, '2027-03-31', '2026-01-04');
+(2, 'staff1', 'abc111', 'test', 'staff', 1, '2027-03-31', '2026-01-04'),
+(3, 'staff2', 'abc111', 'กลุ่มบริหารวิชาการ', 'staff', 1, '2027-03-31', '2026-01-03'),
+(4, 'staff3', 'abc111', 'กลุ่มบริหารกิจการนักเรียน', 'staff', 1, '2027-03-31', '2026-01-03'),
+(5, 'staff4', 'abc111', 'กลุ่มบริหารการเงินและสินทรัพย์', 'staff', 1, '2027-03-31', '2026-01-03'),
+(7, 'staff5', 'abc111', 'กลุ่มบริหารทั่วไป', 'staff', 1, '2027-03-31', '2026-01-03'),
+(9, 'staff6', 'abc111', 'กลุ่มบริหารพัฒนาคุณภาพการศึกษา', 'staff', 1, '2027-03-31', '2026-01-03'),
+(10, 'staff7', 'abc111', 'งานวันสำคัญ', 'staff', 1, '2027-03-31', '2026-01-04'),
+(11, 'staff8', 'abc111', 'งานส่งเสริมศักยภาพนักเรียน(กุหลาบเพชร)', 'staff', 1, '2027-03-31', '2026-01-04'),
+(12, 'staff9', 'abc111', 'โครงการห้องเรียนพิเศษ GATE', 'staff', 1, '2027-03-31', '2026-01-04'),
+(13, 'staff10', 'abc111', 'โครงการห้องเรียนพิเศษ EP', 'staff', 1, '2027-03-31', '2026-01-04'),
+(14, 'staff11', 'abc111', 'งานพัฒนาบุคลากร', 'staff', 1, '2027-03-31', '2026-01-04'),
+(15, 'staff12', 'abc111', 'งานแนะแนวการศึกษา', 'staff', 1, '2027-03-31', '2026-01-04'),
+(16, 'staff13', 'abc111', 'งานลูกเสือ', 'staff', 1, '2027-03-31', '2026-01-04'),
+(17, 'staff14', 'abc111', 'เชียร์และแปรอักษร', 'staff', 1, '2027-03-31', '2026-01-04'),
+(18, 'staff15', 'abc111', 'งานประสานงาน กก.เครือข่ายผู้ปกครอง', 'staff', 1, '2027-03-31', '2026-01-04'),
+(19, 'staff16', 'abc111', 'สำนักเลขาธิการสถาบันฯ', 'staff', 1, '2027-03-31', '2026-01-04'),
+(20, 'staff17', 'abc111', 'สนง.กก.ส่งเสริมวัฒนธรรมคุณภาพสวนกุหลาบฯ', 'staff', 1, '2027-03-31', '2026-01-04'),
+(21, 'staff18', 'abc111', 'ระดับชั้น ม.1', 'staff', 1, '2027-03-31', '2026-01-04'),
+(22, 'staff19', 'abc111', 'ระดับชั้น ม.2', 'staff', 1, '2027-03-31', '2026-01-04'),
+(23, 'staff20', 'abc111', 'ระดับชั้น ม.3', 'staff', 1, '2027-03-31', '2026-01-04'),
+(24, 'staff21', 'abc111', 'ระดับชั้น ม.4', 'staff', 1, '2027-03-31', '2026-01-04'),
+(25, 'staff22', 'abc111', 'ระดับชั้น ม.5', 'staff', 1, '2027-03-31', '2026-01-04'),
+(26, 'staff23', 'abc111', 'ระดับชั้น ม.6', 'staff', 1, '2027-03-31', '2026-01-04'),
+(27, 'staff24', 'abc111', 'กลุ่มสาระวิทยาศาสตร์และเทคโนโลยี', 'staff', 1, '2027-03-31', '2026-01-04'),
+(28, 'staff25', 'abc111', 'กลุ่มสาระคณิตศาสตร์', 'staff', 1, '2027-03-31', '2026-01-04'),
+(29, 'staff26', 'abc111', 'กลุ่มสาระภาษาไทย', 'staff', 1, '2027-03-31', '2026-01-04'),
+(31, 'staff27', 'abc111', 'กลุ่มสาระภาษาต่างประเทศ', 'staff', 1, '2027-03-31', '2026-01-04'),
+(32, 'staff28', 'abc111', 'กลุ่มสาระสุขศึกษาและพลศึกษา', 'staff', 1, '2027-03-31', '2026-01-04'),
+(34, 'staff29', 'abc111', 'กลุ่มสาระศิลปะ', 'staff', 1, '2027-03-31', '2026-01-04'),
+(36, 'staff30', 'abc111', 'กลุ่มสาระสังคมศึกษาศาสนาและวัฒนธรรม', 'staff', 1, '2027-03-31', '2026-01-04'),
+(37, 'staff31', 'abc111', 'กลุ่มสาระการงานอาชีพ', 'staff', 1, '2027-03-31', '2026-01-04'),
+(38, 'staff32', 'abc111', 'งานทะเบียนวัดผล', 'staff', 1, '2027-03-31', '2026-01-04'),
+(39, 'staff33', 'abc111', 'งานคุณภาพกุหลาบหลวง', 'staff', 1, '2027-03-31', '2026-01-04');
 
 --
 -- Indexes for dumped tables
@@ -535,31 +574,31 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `events`
 --
 ALTER TABLE `events`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=107;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=110;
 
 --
 -- AUTO_INCREMENT for table `event_dates`
 --
 ALTER TABLE `event_dates`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=251;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=254;
 
 --
 -- AUTO_INCREMENT for table `problem_reports`
 --
 ALTER TABLE `problem_reports`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `special_holidays`
 --
 ALTER TABLE `special_holidays`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40;
 
 --
 -- Constraints for dumped tables
